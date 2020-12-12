@@ -11,3 +11,83 @@ vue create  toutiao-mobile
 5. lint检查
 
 - 路由选择 hash 模式，不要选择历史模式，历史模式兼容性不好 (问题一：hash 模式与历史模式)		？
+
+## 2. 移动端 rem 适配
+
+- postcss-pxtorem 是一款 postcss 插件，用于将单位转换为 rem
+- lib-flexible 用于设置 rem 基准值
+
+1. 使用 lib-flexible 动态设置 rem 基准值 (html 标签的字体大小)
+
+   安装依赖：
+
+   ```shell
+   # yarn add amfe-flexible
+   npm i amfe-flexible
+   ```
+
+   然后在 main.js 中加载执行该模块：
+
+   ```shell
+   import 'amfe-flexible'
+   ```
+
+   最后测试：在浏览器中切换不同的手机设备尺寸，观察 html 标签 font-size 的变化
+
+2. 使用 postcss-pxtorem 将 px 转为 rem
+
+   安装依赖：
+
+   ```shell
+   # yarn add -D postcss-pxtorem
+   npm install postcss-pxtorem -D
+   ```
+
+   然后在项目根目录中创建 postcss.config.js 文件
+
+   ```javascript
+   module.exports = {
+       plugins: {
+           'autoprefixer': {
+               browsers: ['Android >= 4.0', 'iOS >= 8']
+           },
+           'postcss-pxtorem': {
+               rootValue: 37.5,
+               propList: ['*']
+           }
+       }
+   }
+   ```
+
+   配置完毕，重新启动服务
+
+   最后测试：刷新页面，审查元素样式查看是否已将 px 转换为 rem
+
+## 3. 配置路由页面
+
+| 路径                | 页面                       | 备注             |
+| ------------------- | -------------------------- | ---------------- |
+| /login              | views/login/index.vue      | 登录页面         |
+| /                   | views/layout/index.vue     | 布局组件         |
+| /                   | views/home/index.vue       | 首页，默认子路由 |
+| /qa                 | views/qa/index.vue         | 问答页面         |
+| /video              | views/video/index.vue      | 视频页面         |
+| /my                 | views/my/index.vue         | 我的页面         |
+| /search             | views/search/index.vue     | 文章搜索         |
+| /article/:articleId | views/article/index.vue    | 文章详情         |
+| /my/profile         | views/my-profile/index.vue | 我的资料         |
+| /user/chat          | views/user-chat/index.vue  | 小智同学         |
+| /user/:userId       | views/user/index.vue       | 用户页面         |
+
+问题二：路由懒加载																									？
+
+问题三：@																													？
+
+```javascript
+{
+    path: '/login',
+    name: 'login',
+    component: () => import('@/views/login')
+  }
+```
+
