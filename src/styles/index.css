@@ -75,3 +75,13 @@
 .toutiao-lishi:before {
   content: "\e614";
 }
+body {
+  background-color: #f5f7f9;
+}
+.app-top {
+  background-color: #3296fa;
+}
+.app-top .van-icon,
+.app-top .van-nav-bar__title {
+  color: #fff;
+}

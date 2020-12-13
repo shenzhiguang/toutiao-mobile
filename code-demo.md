@@ -22,8 +22,8 @@ vue create  toutiao-mobile
    安装依赖：
 
    ```shell
-   # yarn add amfe-flexible
-   npm i amfe-flexible
+   # yarn add amfe-flexible -S
+   npm i amfe-flexible -S
    ```
 
    然后在 main.js 中加载执行该模块：
@@ -91,3 +91,56 @@ vue create  toutiao-mobile
   }
 ```
 
+## 4. 封装请求模块
+
+使用 axios 作为此次项目的请求库，为了方便，我们把它封装为一个请求模块，在需要的时候直接加载即可
+
+安装 axios：
+
+```shell
+npm i axios -S
+```
+
+创建 src/utils/request.js：
+
+```javascript
+// 封装 axios 请求模块
+import axios from "axios"
+
+const request = axios.create({
+    baseUrl: "http://ttapi.research.itcast.cn"
+})
+
+export default request
+```
+
+哪里使用，哪里加载：
+
+```javascript
+import request from '@/utils/request'
+
+request({
+    method: 'xxx',
+    url: 'xxx'
+    ...
+})
+```
+
+## 5. 登录注册
+
+### 5.1 页面布局
+
+**结构**
+
+这里主要使用到三个 Vant 组件：
+
+- NavBar 导航栏
+- Form 表单
+  - Field 输入框
+  - Button 按钮
+
+一个经验：使用组件库中现有的组件快速布局，再慢慢调整细节，效率更高
+
+**样式**
+
+写样式的原则：将公共样式写到全局 (src/styles/index.less) ，将局部样式写到组件内部
