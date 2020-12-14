@@ -10,6 +10,7 @@
       <!-- 登录表单 -->
       <van-form
         validate-first
+        ref="loginFormRef"
         :show-error="false"
         :show-error-message="false"
         @submit="onlogin"
@@ -18,6 +19,8 @@
           v-model="user.mobile"
           icon-prefix="toutiao"
           left-icon="shouji"
+          center
+          name="mobile"
           placeholder="请输入手机号"
           :rules="userFormRules.mobile"
         />
@@ -26,11 +29,26 @@
           clearable
           icon-prefix="toutiao"
           left-icon="yanzhengma"
+          center
+          name="code"
           placeholder="请输入验证码"
           :rules="userFormRules.code"
         >
           <template #button>
-            <van-button class="send-btn" size="mini" round>发送验证码</van-button>
+            <van-count-down
+              v-if="countDownOrSendSms"
+              :time="1000 * 60"
+              format="ss s"
+              @finish="countDownOrSendSms = false"
+              />
+            <van-button
+              v-else
+              class="send-btn"
+              size="mini"
+              round
+              :loading="isloading"
+              @click.prevent="onSendSms"
+            >发送验证码</van-button>
           </template>
         </van-field>
         <div class="login-btn-wrap">
@@ -47,7 +65,7 @@
 </template>
 
 <script>
-import { login } from '@/api/user'
+import { login, sendSms } from '@/api/user'
 import { Toast } from 'vant'
 
 export default {
@@ -73,7 +91,11 @@ export default {
           pattern: /^\d{6}$/,
           message: '验证码格式错误'
         }]
-      }
+      },
+      // 控制发送验证码和倒计时的显示
+      countDownOrSendSms: false,
+      // 控制发送验证码的 loading 的显示
+      isloading: false
     }
   },
   methods: {
@@ -85,8 +107,9 @@ export default {
         duration: 0
       })
       try {
-        const res = await login(this.user)
+        const { data: res } = await login(this.user)
         console.log(res)
+        this.$store.commit('setUser', res.data)
         Toast.success('登录成功')
       } catch (err) {
         Toast.fail('登录失败，手机号或验证码错误')
@@ -100,6 +123,38 @@ export default {
         message: err.errors[0].message,
         position: 'top'
       })
+    },
+    // 发送验证码
+    async onSendSms () {
+      try {
+        // 先验证手机号
+        await this.$refs.loginFormRef.validate('mobile')
+        // 验证通过，发送验证码
+        // 显示 loading ，防止网络过慢，用户多次点击导致多次发送请求
+        this.isloading = true
+        const res = await sendSms(this.user.mobile)
+        console.log(res)
+        // 显示倒计时
+        this.countDownOrSendSms = true
+      } catch (err) {
+        let message = ''
+        if (err && err.resposne && err.respsone.status === 429) {
+          // 发送短信失败的错误提示
+          message = '发送太频繁了，请稍后重试'
+        } else if (err.name === 'mobile') {
+          // 表单验证失败的错误提示
+          message = err.message
+        } else {
+          // 未知错误
+          message = '发送失败，请稍后重试'
+        }
+        Toast({
+          message,
+          position: 'top'
+        })
+      }
+      // 无论成功与否，都要关闭 loading
+      this.isloading = false
     }
   }
 }
@@ -107,6 +162,9 @@ export default {
 
 <style lang="less" scoped>
 .login-container {
+  .van-cell {
+    height: 46px;
+  }
   .send-btn {
     width: 76px;
     height: 23px;
